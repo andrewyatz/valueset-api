@@ -119,7 +119,7 @@ poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 }
 ```
 
-## 🗂️ CSV Format
+## CSV Format
 
 Create ValueSets in CSV with these columns:
 
@@ -145,7 +145,7 @@ appris.principal1.1,APPRIS P1,apprisp1,,,Transcript model containing a protein i
 appris.principal2.1,APPRIS P2,apprisp2,,,Transcript model containing a protein isoform classified as PRINCIPAL:2 by APPRIS. ,"When the APPRIS modules cannot clearly select a single protein-coding isoform for a PRINCIPAL:1 transcript out of a pool of multiple candidates, a PRINCIPAL:2 model may instead be selected. This is model containing a protein isoform with a raw TRIFID score that is substantially higher than that for all other candidate models. ",false,,
 ```
 
-## 🔧 CSV Ingestion
+## CSV Ingestion
 
 ### Manual Ingestion
 
@@ -176,7 +176,7 @@ poetry run ingest-csv path/to/valueset.csv --db-path /data/valueset.db
    - Builds database
    - Creates Docker image with embedded database
 
-## 🐳 Docker
+## Docker
 
 ### Build Image
 
@@ -198,7 +198,7 @@ docker run -p 8000:8000 \
 docker-compose up
 ```
 
-## 🧪 Testing
+## Testing
 
 ### Run All Tests
 
