@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse ValueSets</title>
+    <link rel="stylesheet" href="/browse/styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>ValueSet Browser</h1>
+        </header>
+
+        <div class="layout">
+            <aside>
+                <h2>Available ValueSets</h2>
+                <ul id="valueset-list" class="valueset-list">
+                    <li class="loading">Loading...</li>
+                </ul>
+            </aside>
+
+            <main>
+                <div id="content">
+                    <p class="description">Select a ValueSet from the left to view its terms.</p>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="/browse/app.js"></script>
+</body>
+
+</html>

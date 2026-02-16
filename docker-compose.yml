@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_BACKEND=duckdb
+      - DATABASE_PATH=/app/valueset.db
+      - PURL_BASE_URL=http://localhost:8000
+      - DEBUG=true
+      - RELOAD=true
+      - CORS_ORIGINS=["*"]
+    volumes:
+      - ./app:/app/app
+      - ./ingestion:/app/ingestion
+      - ./valueset.db:/app/valueset.db
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s

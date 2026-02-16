@@ -1,0 +1,67 @@
+name: Ingest CSVs and Build
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'valuesets/**.csv'
+  workflow_dispatch:
+
+jobs:
+  ingest-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+    
+    - name: Install dependencies
+      run: |
+        poetry install --no-dev
+    
+    - name: Ingest CSV files
+      run: |
+        poetry run ingest-csv --directory valuesets/ --db-path valueset.db --verbose
+    
+    - name: Verify database
+      run: |
+        ls -lh valueset.db
+        sqlite3 valueset.db "SELECT COUNT(*) FROM valuesets;"
+        sqlite3 valueset.db "SELECT COUNT(*) FROM valueset_values;"
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Login to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository }}:latest
+          ghcr.io/${{ github.repository }}:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Upload database artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: valueset-database
+        path: valueset.db
+        retention-days: 30

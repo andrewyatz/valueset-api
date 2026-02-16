@@ -1,0 +1,129 @@
+:root {
+  --bg-color: #ffffff;
+  --text-color: #1a1a1a;
+  --border-color: #e0e0e0;
+  --hover-color: #f5f5f5;
+  --accent-color: #000000;
+  --secondary-text: #666666;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+header {
+  margin-bottom: 3rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 3rem;
+}
+
+aside h2 {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  color: var(--secondary-text);
+  letter-spacing: 0.05em;
+  margin-bottom: 1.5rem;
+}
+
+.valueset-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.valueset-item {
+  padding: 0.5rem 0;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.valueset-item:hover {
+  color: var(--accent-color);
+  padding-left: 0.25rem;
+}
+
+.valueset-item.active {
+  font-weight: 600;
+  border-bottom: 1px solid var(--accent-color);
+}
+
+main h2 {
+  font-size: 1.25rem;
+  margin-top: 0;
+}
+
+.description {
+  color: var(--secondary-text);
+  margin-bottom: 2rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+th {
+  text-align: left;
+  padding: 1rem 0.5rem;
+  border-bottom: 2px solid var(--border-color);
+  font-weight: 600;
+}
+
+td {
+  padding: 1rem 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: top;
+}
+
+tr:hover {
+  background-color: var(--hover-color);
+}
+
+.additional-field {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.field-key {
+  font-weight: 500;
+  color: var(--secondary-text);
+}
+
+.deprecated {
+  color: #d32f2f;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.loading {
+  color: var(--secondary-text);
+  font-style: italic;
+}
