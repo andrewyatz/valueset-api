@@ -33,9 +33,9 @@ app = FastAPI(
     description=settings.app_description,
     version=settings.app_version,
     lifespan=lifespan,
-    docs_url="/docs",
+    docs_url="/docs" if settings.enable_docs else None,
     redoc_url=None,  # Disable default Redoc to use custom route
-    openapi_url="/openapi.json",
+    openapi_url="/openapi.json" if settings.enable_docs or settings.enable_redoc else None,
 )
 
 # Configure CORS
@@ -52,24 +52,35 @@ app.include_router(health.router)
 app.include_router(terms.router)
 app.include_router(valuesets.router)
 
-# Serve static files for the /browse endpoint
-app.mount("/browse", StaticFiles(directory="static", html=True), name="static")
+
+if settings.enable_redoc:
+
+    @app.get("/redoc", include_in_schema=False)
+    async def redoc_html() -> HTMLResponse:
+        """Custom Redoc documentation route with stable assets."""
+        return get_redoc_html(
+            openapi_url=app.openapi_url or "/openapi.json",
+            title=app.title + " - ReDoc",
+            redoc_js_url="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js",
+        )
 
 
-@app.get("/redoc", include_in_schema=False)
-async def redoc_html() -> HTMLResponse:
-    """Custom Redoc documentation route with stable assets."""
-    return get_redoc_html(
-        openapi_url=app.openapi_url or "/openapi.json",
-        title=app.title + " - ReDoc",
-        redoc_js_url="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js",
-    )
+if settings.enable_browse:
+    # Serve static files for the /browse endpoint
+    app.mount("/browse", StaticFiles(directory="static", html=True), name="static")
+
+    @app.get("/", include_in_schema=False)
+    async def root() -> RedirectResponse:
+        """Redirect root to browse interface if enabled, otherwise docs."""
+        return RedirectResponse(url="/browse")
 
 
-@app.get("/", include_in_schema=False)
-async def root() -> RedirectResponse:
-    """Redirect root to API documentation."""
-    return RedirectResponse(url="/docs")
+else:
+
+    @app.get("/", include_in_schema=False)
+    async def root() -> RedirectResponse:
+        """Redirect root to API documentation."""
+        return RedirectResponse(url="/docs" if settings.enable_docs else "/list/valuesets")
 
 
 if __name__ == "__main__":

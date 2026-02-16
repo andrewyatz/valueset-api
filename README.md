@@ -26,8 +26,13 @@ cp .env.example .env
 
 # Edit .env with your settings
 # Key settings:
-# - DATABASE_PATH: Path to SQLite database file
-# - PURL_BASE_URL: Base URL for generating pURLs
+| Setting | Default | Description |
+|---|---|---|
+| `DATABASE_PATH` | `valueset.db` | Path to the SQLite database file |
+| `ENABLE_DOCS` | `True` | Enable Swagger UI at `/docs` |
+| `ENABLE_REDOC` | `True` | Enable ReDoc UI at `/redoc` |
+| `ENABLE_BROWSE` | `True` | Enable ValueSet Browser at `/browse` |
+| `PURL_BASE_URL` | `https://api.example.com` | Base URL for generated pURLs |
 ```
 
 ### 3. Ingest Sample Data

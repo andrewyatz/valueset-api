@@ -13,6 +13,11 @@ class Settings(BaseSettings):
     environment: str = "production"
     debug: bool = False
 
+    # Endpoint Configuration
+    enable_docs: bool = True
+    enable_redoc: bool = True
+    enable_browse: bool = True
+
     # Database Configuration
     database_path: str = "valueset.db"
 
