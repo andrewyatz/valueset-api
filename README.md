@@ -50,8 +50,11 @@ poetry run uvicorn app.main:app --reload
 poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
+Once live you can use the browse value sets endpoint to inspect the available value sets and contents
+
 ### 5. Access the API
 
+- **Browse Value Sets**: http://localhost:8000/browse
 - **API Documentation**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 - **Health Check**: http://localhost:8000/health
@@ -253,7 +256,7 @@ poetry run pre-commit install
 poetry run pre-commit run --all-files
 ```
 
-## 📊 Monitoring
+## Monitoring
 
 ### Health Checks
 
