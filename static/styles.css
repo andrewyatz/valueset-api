@@ -111,6 +111,43 @@ tr:hover {
   margin-bottom: 0.25rem;
 }
 
+.valueset-metadata {
+  background-color: var(--hover-color);
+  padding: 1.5rem;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+  font-size: 0.875rem;
+}
+
+.metadata-row {
+  display: flex;
+  margin-bottom: 0.5rem;
+}
+
+.metadata-label {
+  font-weight: 600;
+  width: 120px;
+  flex-shrink: 0;
+  color: var(--secondary-text);
+}
+
+.metadata-value {
+  color: var(--text-color);
+}
+
+.metadata-value a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+main h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
 .field-key {
   font-weight: 500;
   color: var(--secondary-text);

@@ -53,6 +53,12 @@ Examples:
     )
     parser.add_argument("--definition", type=str, help="Short definition of the ValueSet")
     parser.add_argument("--full-definition", type=str, help="Full definition of the ValueSet")
+    parser.add_argument(
+        "--metadata",
+        "-m",
+        type=Path,
+        help="Path to YAML file containing ValueSet metadata",
+    )
 
     # Database configuration
     parser.add_argument(
@@ -69,6 +75,22 @@ Examples:
     # Configure logging
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
+
+    # Load YAML metadata if provided
+    yaml_metadata = {}
+    if args.metadata:
+        if not args.metadata.exists():
+            logger.error(f"Metadata file not found: {args.metadata}")
+            sys.exit(1)
+        try:
+            import yaml
+
+            with open(args.metadata) as f:
+                yaml_metadata = yaml.safe_load(f) or {}
+            logger.info(f"Loaded metadata for {len(yaml_metadata)} ValueSets from {args.metadata}")
+        except Exception as e:
+            logger.error(f"Failed to load YAML metadata: {e}")
+            sys.exit(1)
 
     # Validate inputs
     if args.csv_file:
@@ -92,20 +114,47 @@ Examples:
         with CSVLoader(db_path=args.db_path) as loader:
             if args.csv_file:
                 # Ingest single file
-                logger.info(f"Ingesting CSV file: {args.csv_file}")
+                accession = args.accession or args.csv_file.stem
+                
+                # Fetch metadata from YAML if available
+                dataset_metadata = yaml_metadata.get(accession, {})
+                
+                # Precedence: CLI Arg > YAML File > Hardcoded Default
+                definition = (
+                    args.definition 
+                    or dataset_metadata.get("definition") 
+                    or f"ValueSet: {accession}"
+                )
+                full_definition = (
+                    args.full_definition 
+                    or dataset_metadata.get("full_definition") 
+                    or f"Full definition for {accession}"
+                )
+
+                logger.info(f"Ingesting CSV file: {args.csv_file} (accession: {accession})")
                 loader.ingest_csv(
                     csv_path=args.csv_file,
-                    valueset_accession=args.accession,
-                    definition=args.definition,
-                    full_definition=args.full_definition,
+                    valueset_accession=accession,
+                    definition=definition,
+                    full_definition=full_definition,
                 )
                 logger.info("✓ Successfully ingested CSV file")
 
             elif args.directory:
                 # Ingest directory
                 logger.info(f"Ingesting all CSV files from: {args.directory}")
-                loader.ingest_directory(args.directory)
-                logger.info("✓ Successfully ingested all CSV files")
+                csv_files = list(args.directory.glob("*.csv"))
+                for csv_file in csv_files:
+                    accession = csv_file.stem
+                    dataset_metadata = yaml_metadata.get(accession, {})
+                    
+                    loader.ingest_csv(
+                        csv_path=csv_file,
+                        valueset_accession=accession,
+                        definition=dataset_metadata.get("definition"),
+                        full_definition=dataset_metadata.get("full_definition"),
+                    )
+                logger.info(f"✓ Successfully ingested {len(csv_files)} CSV files")
 
     except Exception as e:
         logger.error(f"✗ Ingestion failed: {e}")

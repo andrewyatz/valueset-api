@@ -44,7 +44,22 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTerms(data) {
         let html = `
             <h2>${data.accession}</h2>
-            <p class="description">${data.definition || ''}</p>
+            <div class="valueset-metadata">
+                <div class="metadata-row">
+                    <span class="metadata-label">pURL:</span>
+                    <span class="metadata-value"><a href="${data.pURL}" target="_blank">${data.pURL}</a></span>
+                </div>
+                <div class="metadata-row">
+                    <span class="metadata-label">Definition:</span>
+                    <span class="metadata-value">${data.definition || ''}</span>
+                </div>
+                <div class="metadata-row">
+                    <span class="metadata-label">Full Definition:</span>
+                    <span class="metadata-value">${data.full_definition || ''}</span>
+                </div>
+            </div>
+            
+            <h3>Terms</h3>
             <table>
                 <thead>
                     <tr>

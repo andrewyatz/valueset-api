@@ -155,7 +155,38 @@ appris.principal2.1,APPRIS P2,apprisp2,,,Transcript model containing a protein i
 ```bash
 # Ingest a single CSV file
 poetry run ingest-csv path/to/valueset.csv
+```
 
+### YAML Metadata Ingestion
+Instead of providing metadata via CLI flags, you can use a YAML file to manage metadata for one or more ValueSets.
+
+1. Create a `metadata.yml` file:
+```yaml
+appris:
+  definition: "APPRIS Transcript Classifications"
+  full_definition: |
+    Classifications of transcript models based on core modules 
+    in the APPRIS dataset.
+```
+
+2. Ingest using the `--metadata` (or `-m`) flag:
+```bash
+poetry run ingest-csv tests/fixtures/appris.csv --metadata metadata.yml
+```
+
+Precedence order for metadata:
+1. Direct CLI flags (`--definition`, etc.)
+2. YAML file entries
+3. Hardcoded defaults (e.g., filename-based accession)
+
+### Bulk Ingestion
+Ingest all CSV files in a directory:
+```bash
+ingest-csv --directory path/to/valuesets/
+```
+If a metadata file is provided with `--directory`, it will be used to look up metadata for each CSV file (matching by filename).
+
+```bash
 # With custom metadata
 poetry run ingest-csv path/to/valueset.csv \
   --accession my_valueset \
