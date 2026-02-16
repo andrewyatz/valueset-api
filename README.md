@@ -23,9 +23,10 @@ pip install -e .
 ```bash
 # Copy example environment file
 cp .env.example .env
+```
 
-# Edit .env with your settings
-# Key settings:
+Edit .env with your settings. Key settings:
+
 | Setting | Default | Description |
 |---|---|---|
 | `DATABASE_PATH` | `valueset.db` | Path to the SQLite database file |
@@ -33,7 +34,6 @@ cp .env.example .env
 | `ENABLE_REDOC` | `True` | Enable ReDoc UI at `/redoc` |
 | `ENABLE_BROWSE` | `True` | Enable ValueSet Browser at `/browse` |
 | `PURL_BASE_URL` | `https://api.example.com` | Base URL for generated pURLs |
-```
 
 ### 3. Ingest Sample Data
 
