@@ -5,9 +5,17 @@ from pathlib import Path
 from typing import Generator
 
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 
-from app.database import get_session, get_term, get_valueset, list_valuesets
+from app.database import get_term, get_valueset, list_valuesets
 from ingestion.csv_loader import CSVLoader
+
+
+def make_session(db_path: str) -> Session:
+    """Create a SQLAlchemy session connected to the given database path."""
+    engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
+    return sessionmaker(autocommit=False, autoflush=False, bind=engine)()
 
 
 @pytest.fixture
@@ -45,7 +53,7 @@ class TestCSVLoader:
             )
 
         # Verify data was loaded
-        session = get_session()
+        session = make_session(temp_db)
         try:
             valueset = get_valueset(session, "appris", include_deprecated=True)
             assert valueset is not None
@@ -65,7 +73,7 @@ class TestCSVLoader:
             )
 
         # Get a specific term
-        session = get_session()
+        session = make_session(temp_db)
         try:
             term = get_term(session, "appris.principal1.1")
             assert term is not None
@@ -81,7 +89,7 @@ class TestCSVLoader:
             loader.ingest_csv(test_csv_path)
 
         # Check term with default values
-        session = get_session()
+        session = make_session(temp_db)
         try:
             term = get_term(session, "appris.principal2.1")
             assert term is not None
@@ -94,7 +102,7 @@ class TestCSVLoader:
         with CSVLoader(db_path=temp_db) as loader:
             loader.ingest_csv(test_csv_path)
 
-        session = get_session()
+        session = make_session(temp_db)
         try:
             # Get all terms including deprecated
             valueset = get_valueset(session, "appris", include_deprecated=True)
@@ -131,7 +139,7 @@ class TestCSVLoader:
         """Test that CSVLoader works as context manager."""
         with CSVLoader(db_path=temp_db) as loader:
             assert loader is not None
-        # Connection should be closed after context exit
+        # Engine should be disposed after context exit
 
     def test_json_field_parsing(self, temp_db: str) -> None:
         """Test parsing of JSON fields from CSV."""
@@ -166,9 +174,33 @@ class TestCSVLoaderDirectory:
             loader.ingest_directory(fixtures_dir)
 
         # Should have loaded at least one ValueSet
-        session = get_session()
+        session = make_session(temp_db)
         try:
             valuesets = list_valuesets(session)
             assert len(valuesets) >= 1
+        finally:
+            session.close()
+
+    def test_ingest_directory_with_yaml_metadata(
+        self, test_csv_path: Path, temp_db: str
+    ) -> None:
+        """Test directory ingestion applies YAML metadata per accession."""
+        fixtures_dir = test_csv_path.parent
+        yaml_metadata = {
+            "appris": {
+                "definition": "From YAML: APPRIS definition",
+                "full_definition": "From YAML: APPRIS full definition",
+            }
+        }
+
+        with CSVLoader(db_path=temp_db) as loader:
+            loader.ingest_directory(fixtures_dir, yaml_metadata=yaml_metadata)
+
+        session = make_session(temp_db)
+        try:
+            valuesets = list_valuesets(session)
+            appris = next(vs for vs in valuesets if vs.accession == "appris")
+            assert appris.definition == "From YAML: APPRIS definition"
+            assert appris.full_definition == "From YAML: APPRIS full definition"
         finally:
             session.close()

@@ -138,23 +138,13 @@ Examples:
                     definition=definition,
                     full_definition=full_definition,
                 )
-                logger.info("✓ Successfully ingested CSV file")
+                logger.info("Successfully ingested CSV file")
 
             elif args.directory:
                 # Ingest directory
                 logger.info(f"Ingesting all CSV files from: {args.directory}")
-                csv_files = list(args.directory.glob("*.csv"))
-                for csv_file in csv_files:
-                    accession = csv_file.stem
-                    dataset_metadata = yaml_metadata.get(accession, {})
-                    
-                    loader.ingest_csv(
-                        csv_path=csv_file,
-                        valueset_accession=accession,
-                        definition=dataset_metadata.get("definition"),
-                        full_definition=dataset_metadata.get("full_definition"),
-                    )
-                logger.info(f"✓ Successfully ingested {len(csv_files)} CSV files")
+                loader.ingest_directory(args.directory, yaml_metadata=yaml_metadata)
+                logger.info("Successfully ingested CSV files from directory")
 
     except Exception as e:
         logger.error(f"✗ Ingestion failed: {e}")

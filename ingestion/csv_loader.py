@@ -7,10 +7,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from pydantic import ValidationError
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
-from app.database import get_session, init_db, insert_valueset
+from app.database import insert_valueset
 from app.models import ValueSet, ValueSetValue
+from app.schema import Base
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -26,16 +29,19 @@ class CSVLoader:
         Args:
             db_path: Optional database path override
         """
-        if db_path:
-            settings.database_path = db_path
-            # Reset the global engine and session factory to use new path
-            import app.database as db_module
+        path = db_path or settings.database_path
+        self._engine = create_engine(
+            f"sqlite:///{path}",
+            connect_args={"check_same_thread": False},
+        )
+        Base.metadata.create_all(bind=self._engine)
+        self._session_factory = sessionmaker(
+            autocommit=False, autoflush=False, bind=self._engine
+        )
 
-            db_module._engine = None
-            db_module._SessionLocal = None
-
-        # Initialize database
-        init_db()
+    def _get_session(self) -> Session:
+        """Create a new session on this loader's engine."""
+        return self._session_factory()
 
     def parse_json_field(self, value: Any, field_name: str) -> Any:
         """
@@ -202,35 +208,50 @@ class CSVLoader:
         # Load ValueSet from CSV
         valueset = self.load_valueset_from_csv(csv_path, valueset_accession, metadata)
 
-        # Insert into database using SQLAlchemy session
+        # Insert into database
         logger.info(f"Inserting ValueSet '{valueset_accession}' into database")
-        session = get_session()
+        session = self._get_session()
         try:
             insert_valueset(session, valueset)
+            session.commit()
             logger.info(f"Successfully inserted {len(valueset.values)} values")
+        except Exception:
+            session.rollback()
+            raise
         finally:
             session.close()
 
-    def ingest_directory(self, directory: Path) -> None:
+    def ingest_directory(
+        self, directory: Path, yaml_metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
         """
         Ingest all CSV files from a directory.
 
         Args:
             directory: Directory containing CSV files
+            yaml_metadata: Optional dict of per-accession metadata loaded from YAML
         """
+        metadata = yaml_metadata or {}
         csv_files = list(directory.glob("*.csv"))
         logger.info(f"Found {len(csv_files)} CSV files in {directory}")
 
         for csv_file in csv_files:
+            accession = csv_file.stem
+            dataset_metadata = metadata.get(accession, {})
             try:
-                self.ingest_csv(csv_file)
+                self.ingest_csv(
+                    csv_path=csv_file,
+                    valueset_accession=accession,
+                    definition=dataset_metadata.get("definition"),
+                    full_definition=dataset_metadata.get("full_definition"),
+                )
             except Exception as e:
                 logger.error(f"Failed to ingest {csv_file}: {e}")
                 continue
 
     def close(self) -> None:
-        """Close database connection (no-op for SQLAlchemy)."""
-        pass
+        """Dispose of the database engine."""
+        self._engine.dispose()
 
     def __enter__(self) -> "CSVLoader":
         """Context manager entry."""

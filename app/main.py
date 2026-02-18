@@ -1,6 +1,7 @@
 """Main FastAPI application."""
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
@@ -66,6 +67,12 @@ if settings.enable_redoc:
 
 
 if settings.enable_browse:
+    _static_dir = Path("static")
+    if not _static_dir.is_dir():
+        raise RuntimeError(
+            "ENABLE_BROWSE=True but the 'static/' directory was not found. "
+            "Ensure static files are present or set ENABLE_BROWSE=False."
+        )
     # Serve static files for the /browse endpoint
     app.mount("/browse", StaticFiles(directory="static", html=True), name="static")
 

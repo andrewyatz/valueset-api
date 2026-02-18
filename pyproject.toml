@@ -14,7 +14,6 @@ uvicorn = {extras = ["standard"], version = "^0.27.0"}
 pydantic = "^2.5.0"
 pydantic-settings = "^2.1.0"
 sqlalchemy = "^2.0.0"
-alembic = "^1.13.0"
 python-multipart = "^0.0.6"
 pyyaml = "^6.0.3"
 

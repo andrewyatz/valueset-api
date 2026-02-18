@@ -3,7 +3,7 @@
 from typing import List, Optional
 
 from pydantic import HttpUrl
-from sqlalchemy import Engine, create_engine, select
+from sqlalchemy import Engine, create_engine, func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
@@ -79,6 +79,13 @@ def list_valuesets(session: Session) -> List[ValueSetSummary]:
     stmt = select(ValueSetORM).order_by(ValueSetORM.accession)
     results = session.execute(stmt).scalars().all()
 
+    # Fetch all term counts in a single query instead of lazy-loading per ValueSet
+    count_stmt = select(
+        ValueSetValueORM.valueset,
+        func.count(ValueSetValueORM.accession).label("count"),
+    ).group_by(ValueSetValueORM.valueset)
+    counts = {row.valueset: row.count for row in session.execute(count_stmt)}
+
     summaries = []
     for vs in results:
         summaries.append(
@@ -87,7 +94,7 @@ def list_valuesets(session: Session) -> List[ValueSetSummary]:
                 pURL=HttpUrl(vs.purl),
                 definition=vs.definition,
                 full_definition=vs.full_definition,
-                value_count=len(vs.values),
+                value_count=counts.get(vs.accession, 0),
             )
         )
 
@@ -178,7 +185,6 @@ def insert_valueset(session: Session, valueset: ValueSet) -> None:
         vs_orm.values.append(value_orm)
 
     session.add(vs_orm)
-    session.commit()
 
 
 def health_check(session: Session) -> bool:
